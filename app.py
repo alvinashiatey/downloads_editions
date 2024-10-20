@@ -7,8 +7,10 @@ from reportlab.lib.pagesizes import HALF_LETTER
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from reportlab.platypus import Paragraph
+from reportlab.lib.enums import TA_JUSTIFY
 from reportlab.lib.styles import getSampleStyleSheet
 
+NAME = 'ROOT'
 PAGE_WIDTH, PAGE_HEIGHT = HALF_LETTER
 NUMBER_OF_FILES = 22
 PDF_WRITER = PdfWriter()
@@ -22,14 +24,27 @@ title_style.leading = 60
 title_style.paddingLeft = 0
 
 
+def about_project_page(c, folder_path):
+    c.setPageSize(HALF_LETTER)
+    about_style = styles["Normal"]
+    about_style.fontSize = 12
+    about_style.leading = 12 * 1.2
+    about_style.paddingLeft = 0
+    about_style.alignment = TA_JUSTIFY
+
+    about_text = f'''This edition delves into {NAME}'s Download folder, capturing its contents as of {datetime.now().strftime(
+        '%m.%d.%Y')}. It reflects on the digital clutter that accumulates over time and the narratives hidden within the files we download. The files in this edition were randomly selected, with pixelated images to ensure privacy. This project is an ongoing exploration of digital archives.'''
+    about_text = about_text.replace('\n', '<BR/>')
+    about_text = Paragraph(about_text, about_style)
+    about_text_height = about_text.wrapOn(c, PAGE_WIDTH-20, PAGE_HEIGHT-20)
+    about_text.drawOn(c, 10, PAGE_HEIGHT - about_text_height[1] - 10)
+    c.showPage()
+
+
 def justify_text(c, text, x, y, width):
     words = text.split('|')
-    total_length = sum(c.stringWidth(word, "Helvetica", 12)
-                       for word in words)  # Calculate total width of all words
-    spaces_needed = len(words) - 1  # Number of spaces between words
-    if spaces_needed == 0:
-        c.drawString(x, y, text)
-        return
+    total_length = sum(c.stringWidth(word, "Helvetica", 12) for word in words)
+    spaces_needed = max(len(words) - 1, 1)  # Ensure at least one space needed
 
     total_space = width - total_length
     space_between_words = total_space / spaces_needed
@@ -57,12 +72,12 @@ def generate_cover_page(c):
     c.showPage()
 
 
-def empty_page(c, page_num):
+def empty_page(c):
     c.setPageSize(HALF_LETTER)
     c.showPage()
 
 
-def pixelate_image(image_path, pixel_size, brightness_factor=1.8):
+def pixelate_image(image_path, pixel_size, brightness_factor=1.2):
     with Image.open(image_path) as img:
         img = img.convert("L")
         img_small = img.resize(
@@ -97,7 +112,8 @@ def add_image(c, file):
 def generate_pdf(structured_files):
     c = canvas.Canvas(PDF_PATH, pagesize=HALF_LETTER)
     generate_cover_page(c)
-    empty_page(c, 2)
+    empty_page(c)
+    about_project_page(c, downloads_folder)
     for file in structured_files:
         c.setPageSize(HALF_LETTER)
         add_image(c, file)
@@ -110,7 +126,7 @@ def generate_pdf(structured_files):
         c_text.drawOn(c, 5, PAGE_HEIGHT - c_text_height[1])
         page_number(c, structured_files.index(file) + 1)
         c.showPage()
-    empty_page(c, len(structured_files) + 2)
+    empty_page(c)
     c.save()
 
 
@@ -120,6 +136,10 @@ def randomly_pick_files(files, n):
 
 def filter_files_no_folders(folder_path, files):
     return [file for file in files if os.path.isfile(os.path.join(folder_path, file))]
+
+
+def filter_file_remove_types(files, types):
+    return [file for file in files if file.split('.')[-1] not in types]
 
 
 def sort_files(files):
@@ -147,6 +167,8 @@ def print_files(folder_path):
 
     files = os.listdir(folder_path)
     filtered_files = filter_files_no_folders(folder_path, files)
+    filtered_files = filter_file_remove_types(filtered_files, [
+        'DS_Store'])
     random_files = randomly_pick_files(filtered_files, NUMBER_OF_FILES)
     sorted_files = sort_files(random_files)
     structured_files = structure_files_to_dict(folder_path, sorted_files)
@@ -155,4 +177,5 @@ def print_files(folder_path):
 
 
 if __name__ == '__main__':
+    # NAME = input("Please enter your name: ")
     print_files(downloads_folder)
