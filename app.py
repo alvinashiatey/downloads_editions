@@ -7,20 +7,19 @@ from reportlab.lib.pagesizes import HALF_LETTER
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from reportlab.platypus import Paragraph
-from reportlab.lib.enums import TA_JUSTIFY
 from reportlab.lib.styles import getSampleStyleSheet
 
-NAME = 'ROOT'
+NAME = os.environ.get('USER') or os.environ.get(
+    'LOGNAME') or os.environ.get('USERNAME')
 PAGE_WIDTH, PAGE_HEIGHT = HALF_LETTER
 NUMBER_OF_FILES = 22
+MARGIN = 15
 PDF_WRITER = PdfWriter()
 PDF_PATH = 'Downloads.pdf'
 TEMP_PIXELATED_PATH = 'temp_pixelated.png'
 downloads_folder = os.path.expanduser('~/Downloads')
 styles = getSampleStyleSheet()
 title_style = styles["Normal"]
-title_style.fontSize = 62
-title_style.leading = 60
 title_style.paddingLeft = 0
 
 
@@ -30,14 +29,14 @@ def about_project_page(c, folder_path):
     about_style.fontSize = 12
     about_style.leading = 12 * 1.2
     about_style.paddingLeft = 0
-    about_style.alignment = TA_JUSTIFY
 
-    about_text = f'''This edition delves into {NAME}'s Download folder, capturing its contents as of {datetime.now().strftime(
+    about_text = f'''This edition delves into {NAME.capitalize()}'s Download folder, capturing its contents as of {datetime.now().strftime(
         '%m.%d.%Y')}. It reflects on the digital clutter that accumulates over time and the narratives hidden within the files we download. The files in this edition were randomly selected, with pixelated images to ensure privacy. This project is an ongoing exploration of digital archives.'''
     about_text = about_text.replace('\n', '<BR/>')
     about_text = Paragraph(about_text, about_style)
-    about_text_height = about_text.wrapOn(c, PAGE_WIDTH-20, PAGE_HEIGHT-20)
-    about_text.drawOn(c, 10, PAGE_HEIGHT - about_text_height[1] - 10)
+    about_text_height = about_text.wrapOn(
+        c, PAGE_WIDTH-(MARGIN*2), PAGE_HEIGHT-(MARGIN*2))
+    about_text.drawOn(c, MARGIN, PAGE_HEIGHT - about_text_height[1] - MARGIN)
     c.showPage()
 
 
@@ -65,11 +64,24 @@ def page_number(c, page_num):
 
 
 def generate_cover_page(c):
+    title_style.fontSize = 62
+    title_style.leading = 60
     cover_page = Paragraph(
         '''Downloads/<BR/>Downloads<BR/>.pdf''', title_style)
-    cover_page_height = cover_page.wrapOn(c, PAGE_WIDTH, PAGE_HEIGHT)
-    cover_page.drawOn(c, 0, PAGE_HEIGHT - cover_page_height[1])
+    cover_page_height = cover_page.wrapOn(
+        c, PAGE_WIDTH-(MARGIN*2), PAGE_HEIGHT-(MARGIN*2))
+    cover_page.drawOn(
+        c, MARGIN, PAGE_HEIGHT - cover_page_height[1])
     c.showPage()
+
+
+def generate_titles(c, title):
+    title_style.fontSize = 62
+    title_style.leading = 60
+    c_text = Paragraph(f'{title}', title_style)
+    c_text_height = c_text.wrapOn(
+        c, PAGE_WIDTH - (MARGIN*2), PAGE_HEIGHT-(MARGIN*2))
+    c_text.drawOn(c, MARGIN, PAGE_HEIGHT - c_text_height[1])
 
 
 def empty_page(c):
@@ -119,11 +131,10 @@ def generate_pdf(structured_files):
         add_image(c, file)
         center_text = f'{file["date"]}|{
             file["extension"]}|{file["size"]}'
-        justify_text(c, center_text, 10, PAGE_HEIGHT/2, PAGE_WIDTH-20)
+        justify_text(c, center_text, MARGIN,
+                     PAGE_HEIGHT/2, PAGE_WIDTH-(MARGIN*2))
         title = shorten_text(file['title'], 50)
-        c_text = Paragraph(f'{title}', title_style)
-        c_text_height = c_text.wrapOn(c, PAGE_WIDTH - 20, PAGE_HEIGHT)
-        c_text.drawOn(c, 5, PAGE_HEIGHT - c_text_height[1])
+        generate_titles(c, title)
         page_number(c, structured_files.index(file) + 1)
         c.showPage()
     empty_page(c)
