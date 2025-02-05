@@ -14,7 +14,7 @@ MARGIN = 10
 PIXEL_SIZE = 40
 TITLE_TEXT_LENGTH = 50
 BOOKLET_PDF_PATH = os.path.join(os.path.sep, 'tmp', 'Booklet.pdf')
-TEMP_PIXELATED_PATH = os.path.join(os.path.sep, 'tmp', 'temp_pixelated.png')
+TEMP_PIXELATED_PATH = os.path.join(os.path.sep, 'tmp', 'temp_pixelated.jpg')
 
 # Other settings
 NUMBER_OF_FILES = 24
