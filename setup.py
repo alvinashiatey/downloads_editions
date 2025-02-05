@@ -1,4 +1,3 @@
-# setup.py
 from setuptools import setup, find_packages
 
 setup(
@@ -7,14 +6,13 @@ setup(
     description="A tool to create a booklet PDF from your Downloads folder.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="Alvin Ashiatey",
+    author_email="mail@alvinashiatey.com",
     url="https://github.com/alvinashiatey/downloads_editions",
-    packages=find_packages(),           # Automatically discover your packages.
+    packages=find_packages(),
     install_requires=[
         "Pillow",
         "reportlab",
-        # Add any other runtime dependencies here.
     ],
     entry_points={
         "console_scripts": [
@@ -23,7 +21,7 @@ setup(
     },
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",  # Choose your license.
+        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
