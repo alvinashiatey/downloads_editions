@@ -20,7 +20,7 @@ pip install git+https://github.com/alvinashiatey/downloads_editions
 Once installed, you can run the tool directly from your Terminal. The package comes with a simple command-line interface that helps you generate your booklet PDF with just a few keystrokes.
 
 ```bash
-downloads_editions
+downloads-editions
 ```
 
 ## Uninstallation
@@ -31,7 +31,7 @@ If you ever need to remove the package from your system, it’s just as easy to 
 2. Run the following command:
 
 ```bash
-pip uninstall downloads_editions
+pip uninstall downloads-editions
 ```
 
 Submitting Your Edition

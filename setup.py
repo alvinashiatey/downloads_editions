@@ -18,7 +18,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "my-booklet=app.main:main",
+            "downloads-editions=app.main:main",
         ],
     },
     classifiers=[
