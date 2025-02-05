@@ -1,27 +1,40 @@
-import subprocess
 import os
 import random
+import subprocess
+import sys
 from datetime import datetime
+from typing import List, Optional, Tuple
 
 
-def get_sample_files(folder_path, number_of_files, ignore_extensions=None):
+def get_sample_files(
+    folder_path: str,
+    number_of_files: int,
+    ignore_extensions: Optional[List[str]] = None
+) -> List[str]:
     """
-    Returns a random sample of files from the specified folder.
+    Returns a random sample of file paths from the specified folder, excluding files with certain extensions.
 
-    Parameters:
-      folder_path: Path to the folder containing files.
-      number_of_files: Number of files to sample.
-      ignore_extensions: List of file extensions to ignore.
+    Args:
+        folder_path (str): Path to the folder containing files.
+        number_of_files (int): Number of files to sample.
+        ignore_extensions (Optional[List[str]]): List of file extensions to ignore.
+            Defaults to ['.DS_Store', '.ini'].
 
     Returns:
-      A list of sampled file paths.
+        List[str]: A list of sampled file paths. Returns an empty list if no files are found.
     """
     if ignore_extensions is None:
         ignore_extensions = ['.DS_Store', '.ini']
 
+    try:
+        all_files = os.listdir(folder_path)
+    except Exception as e:
+        print(f"Error reading folder '{folder_path}': {e}")
+        return []
+
     files = [
         os.path.join(folder_path, f)
-        for f in os.listdir(folder_path)
+        for f in all_files
         if os.path.isfile(os.path.join(folder_path, f)) and not any(f.endswith(ext) for ext in ignore_extensions)
     ]
 
@@ -32,25 +45,36 @@ def get_sample_files(folder_path, number_of_files, ignore_extensions=None):
     return random.sample(files, min(number_of_files, len(files)))
 
 
-def analyze_files_by_creation_date(folder_path, ignore_extensions=None):
+def analyze_files_by_creation_date(
+    folder_path: str,
+    ignore_extensions: Optional[List[str]] = None
+) -> Optional[Tuple[Tuple[str, datetime], Tuple[str, datetime]]]:
     """
-    Scans the folder and returns:
-      - The file with the earliest creation date (oldest added)
-      - The file with the latest creation date (recently added)
+    Scans the folder and returns the file with the earliest creation date and the file with the latest creation date.
 
-    Parameters:
-      folder_path: Path to the folder containing files.
+    Args:
+        folder_path (str): Path to the folder containing files.
+        ignore_extensions (Optional[List[str]]): List of file extensions to ignore.
+            Defaults to ['.DS_Store', '.ini'].
 
     Returns:
-      A tuple ((oldest_added_file, oldest_date), (recent_added_file, recent_date)).
-      The creation dates are also returned as a formatted string.
+        Optional[Tuple[Tuple[str, datetime], Tuple[str, datetime]]]:
+            A tuple containing two tuples:
+                ((oldest_file_name, oldest_date), (recent_file_name, recent_date)).
+            Returns None if no files are found.
     """
     if ignore_extensions is None:
         ignore_extensions = ['.DS_Store', '.ini']
 
+    try:
+        all_files = os.listdir(folder_path)
+    except Exception as e:
+        print(f"Error reading folder '{folder_path}': {e}")
+        return None
+
     files = [
         os.path.join(folder_path, f)
-        for f in os.listdir(folder_path)
+        for f in all_files
         if os.path.isfile(os.path.join(folder_path, f)) and not any(f.endswith(ext) for ext in ignore_extensions)
     ]
 
@@ -58,31 +82,32 @@ def analyze_files_by_creation_date(folder_path, ignore_extensions=None):
         print('No files found in the specified folder.')
         return None
 
-    oldest_added_file = min(files, key=os.path.getmtime)
-    recent_added_file = max(files, key=os.path.getmtime)
+    oldest_file = min(files, key=os.path.getmtime)
+    recent_file = max(files, key=os.path.getmtime)
 
-    return (
-        (os.path.basename(oldest_added_file), datetime.fromtimestamp(
-            os.path.getmtime(oldest_added_file))),
-        (os.path.basename(recent_added_file), datetime.fromtimestamp(
-            os.path.getmtime(recent_added_file)))
-    )
+    oldest_date = datetime.fromtimestamp(os.path.getmtime(oldest_file))
+    recent_date = datetime.fromtimestamp(os.path.getmtime(recent_file))
+
+    return ((os.path.basename(oldest_file), oldest_date),
+            (os.path.basename(recent_file), recent_date))
 
 
-def open_file_in_default_app(file_path):
+def open_file_in_default_app(file_path: str) -> None:
     """
     Opens the specified file using the default application associated with its file type.
 
-    Parameters:
-      file_path: Path to the file to be opened.
-
-    Returns:
-      None
+    Args:
+        file_path (str): Path to the file to open.
     """
     try:
-        if os.name == 'nt':  # Windows
-            os.startfile(file_path)
-        elif os.name == 'posix':  # macOS and Linux
+        if sys.platform.startswith('darwin'):
             subprocess.run(['open', file_path], check=True)
+        elif os.name == 'nt':
+            os.startfile(file_path)  # Windows
+        elif os.name == 'posix':
+            subprocess.run(['xdg-open', file_path], check=True)
+        else:
+            print(f"Unsupported operating system: cannot open file {
+                  file_path}")
     except Exception as e:
-        print(f"An error occurred while trying to open the file: {e}")
+        print(f"Failed to open file {file_path}: {e}")
