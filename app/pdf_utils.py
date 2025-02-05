@@ -147,6 +147,7 @@ def create_booklet_pdf(files):
         c.showPage()
     c.save()
     print(f'Booklet PDF generated: {config.BOOKLET_PDF_PATH}')
+    file_utils.open_file_in_default_app(config.BOOKLET_PDF_PATH)
 
 
 def draw_half_page(c, page_info):
@@ -165,7 +166,7 @@ def draw_half_page(c, page_info):
         about_style = styles["Normal"]
         about_style.fontSize = 12
         about_style.leading = 12 * 1.2
-        about_text = f'''This edition examines the Download folder of {config.USER_NAME.capitalize()} as of {datetime.now().strftime("%m.%d.%Y")}. It reflects on the quiet buildup of digital clutter and unveils the untold stories hidden in our downloads. Files are randomly selected, with pixelated images ensuring privacy. As part of this ongoing project exploring the overlooked archives of our digital lives, your most recent download is {
+        about_text = f'''This edition examines the Downloads folder of {config.USER_NAME.capitalize()} as of {datetime.now().strftime("%m.%d.%Y")}. It reflects on the quiet buildup of digital clutter and unveils the untold stories hidden in our downloads. Files are randomly selected, with pixelated images ensuring privacy. As part of this ongoing project exploring the overlooked archives of our digital lives, your most recent download is {
             recent_added_file[0]} (added on {recent_added_file[1].strftime("%m.%d.%Y")}), and the earliest download is {oldest_added_file[0]} (added on {oldest_added_file[1].strftime("%m.%d.%Y")}).'''
         about_text = about_text.replace('\n', '<br/>')
         about_page = Paragraph(about_text, about_style)

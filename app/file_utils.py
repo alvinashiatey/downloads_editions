@@ -1,18 +1,34 @@
+import subprocess
 import os
 import random
 from datetime import datetime
 
 
 def get_sample_files(folder_path, number_of_files, ignore_extensions=None):
+    """
+    Returns a random sample of files from the specified folder.
+
+    Parameters:
+      folder_path: Path to the folder containing files.
+      number_of_files: Number of files to sample.
+      ignore_extensions: List of file extensions to ignore.
+
+    Returns:
+      A list of sampled file paths.
+    """
     if ignore_extensions is None:
         ignore_extensions = ['.DS_Store', '.ini']
-    files = [os.path.join(folder_path, f) for f in os.listdir(folder_path)
-             if os.path.isfile(os.path.join(folder_path, f))]
-    files = [f for f in files if not any(
-        f.endswith(ext) for ext in ignore_extensions)]
-    if len(files) == 0:
+
+    files = [
+        os.path.join(folder_path, f)
+        for f in os.listdir(folder_path)
+        if os.path.isfile(os.path.join(folder_path, f)) and not any(f.endswith(ext) for ext in ignore_extensions)
+    ]
+
+    if not files:
         print('No files found in the specified folder.')
-        exit()
+        return []
+
     return random.sample(files, min(number_of_files, len(files)))
 
 
@@ -51,3 +67,22 @@ def analyze_files_by_creation_date(folder_path, ignore_extensions=None):
         (os.path.basename(recent_added_file), datetime.fromtimestamp(
             os.path.getmtime(recent_added_file)))
     )
+
+
+def open_file_in_default_app(file_path):
+    """
+    Opens the specified file using the default application associated with its file type.
+
+    Parameters:
+      file_path: Path to the file to be opened.
+
+    Returns:
+      None
+    """
+    try:
+        if os.name == 'nt':  # Windows
+            os.startfile(file_path)
+        elif os.name == 'posix':  # macOS and Linux
+            subprocess.run(['open', file_path], check=True)
+    except Exception as e:
+        print(f"An error occurred while trying to open the file: {e}")
