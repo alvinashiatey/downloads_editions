@@ -159,10 +159,11 @@ def draw_page_number(c: canvas.Canvas, page_num: int) -> None:
         c (Canvas): The ReportLab canvas to draw on.
         page_num (int): The page number to display.
     """
-    c.drawRightString(
+    c.drawString(
         config.HALF_WIDTH - config.MARGIN,
         config.MARGIN,
-        str(page_num)
+        str(page_num),
+        direction='LTR'
     )
 
 
