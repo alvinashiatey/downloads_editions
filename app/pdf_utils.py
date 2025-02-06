@@ -373,7 +373,7 @@ def draw_cover_page(c: canvas.Canvas) -> None:
     title_style.leading = 60
 
     cover_page = Paragraph(
-        '''Downloads/<br/>Downloads<br/>.pdf''',
+        '''/Downloads<br/>/Downloads<br/>.pdf''',
         title_style
     )
     cover_page.wrapOn(c, config.HALF_WIDTH - 2 * config.MARGIN,
