@@ -407,6 +407,8 @@ def draw_about_page(c: canvas.Canvas) -> None:
             '%m.%d.%Y')}), and the earliest download is "
         f"{oldest_added_file[0]} (added on {
             oldest_added_file[1].strftime('%m.%d.%Y')})."
+        f"\n"
+        f"Developed by Alvin Ashiatey, this Python package is a zine in itself—a space where design intersects with code, and each run brings new life to its content."
     )
     # Replace any newline with <br/> if needed
     about_text = about_text.replace('\n', '<br/>')
