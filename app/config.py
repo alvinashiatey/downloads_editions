@@ -1,5 +1,6 @@
 # app/config.py
 import os
+
 from reportlab.lib.pagesizes import HALF_LETTER, LETTER, landscape
 
 # Environment-based config
@@ -18,3 +19,4 @@ TEMP_PIXELATED_PATH = os.path.join(os.path.sep, 'tmp', 'temp_pixelated.jpg')
 
 # Other settings
 NUMBER_OF_FILES = 24
+DRAW_IMAGES = False  # Set to True to include pixelated images in the PDF

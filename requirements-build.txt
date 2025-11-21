@@ -1,0 +1,11 @@
+# Requirements for building standalone applications
+# Install these in addition to the main requirements.txt
+
+# PyInstaller for creating standalone executables
+pyinstaller>=5.0.0
+
+# Optional: for creating macOS DMG files
+# dmgbuild>=1.6.1
+
+# Optional: for Windows installer creation (requires Inno Setup installed)
+# pynsist>=2.8

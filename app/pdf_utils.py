@@ -1,11 +1,13 @@
 import os
 from datetime import datetime
-from reportlab.pdfgen import canvas
-from reportlab.lib.utils import ImageReader
-from reportlab.platypus import Paragraph
+from typing import Any, Dict, List
+
 from reportlab.lib.styles import getSampleStyleSheet
-from app import config, image_utils, file_utils
-from typing import List, Dict, Any
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Paragraph
+
+from app import config, file_utils, image_utils
 
 # Define a type alias for clarity
 FileInfo = Dict[str, Any]
@@ -16,8 +18,12 @@ styles = getSampleStyleSheet()
 title_style = styles["Normal"]
 title_style.paddingLeft = 0
 
-oldest_added_file, recent_added_file = file_utils.analyze_files_by_creation_date(
+file_analysis = file_utils.analyze_files_by_creation_date(
     config.DOWNLOADS_FOLDER)
+if file_analysis is not None:
+    oldest_added_file, recent_added_file = file_analysis
+else:
+    oldest_added_file, recent_added_file = None, None
 
 
 def justify_text(c: canvas.Canvas, text: str, x: float, y: float, width: float) -> None:
@@ -66,16 +72,16 @@ def draw_image(c: canvas.Canvas, file_info: FileInfo) -> None:
         return
 
     # Set up blend mode if not already defined
-    if not hasattr(c._doc, "ExtGState"):
-        c._doc.ExtGState = {}
+    if not hasattr(c._doc, "ExtGState"):  # pyright: ignore[reportAttributeAccessIssue]
+        c._doc.ExtGState = {}  # pyright: ignore[reportAttributeAccessIssue]
     ext_gs_name = "GS1"
     blend_mode = "multiply"
     gs_dict_code = f"<< /Type /ExtGState /BM /{blend_mode} >>"
-    c._doc.ExtGState[ext_gs_name] = gs_dict_code
+    c._doc.ExtGState[ext_gs_name] = gs_dict_code  # pyright: ignore[reportAttributeAccessIssue]
 
     # Apply the blend state
     c.saveState()
-    c._code.append(f"/{ext_gs_name} gs")
+    c._code.append(f"/{ext_gs_name} gs")  # pyright: ignore[reportAttributeAccessIssue]
 
     # Process and pixelate the image
     image_utils.pixelate_image(file_info['path'])
@@ -159,10 +165,15 @@ def draw_page_number(c: canvas.Canvas, page_num: int) -> None:
         c (Canvas): The ReportLab canvas to draw on.
         page_num (int): The page number to display.
     """
+    # Calculate the width of the page number text to center it
+    page_num_str = str(page_num)
+    text_width = c.stringWidth(page_num_str, "Helvetica", 12)
+    center_x = (config.HALF_WIDTH - text_width) / 2
+
     c.drawString(
-        config.HALF_WIDTH - config.MARGIN,
+        center_x,
         config.MARGIN,
-        str(page_num),
+        page_num_str,
         direction='LTR'
     )
 
@@ -177,8 +188,9 @@ def draw_page_content(c: canvas.Canvas, file_info: FileInfo, page_num: int) -> N
         file_info (FileInfo): Dictionary containing file details.
         page_num (int): The page number to display.
     """
-    # Draw the image if the file is of an image type
-    draw_image(c, file_info)
+    # Draw the image if the file is of an image type and DRAW_IMAGES is enabled
+    if config.DRAW_IMAGES:
+        draw_image(c, file_info)
 
     # Draw the file title
     draw_title(c, file_info)
@@ -395,22 +407,33 @@ def draw_about_page(c: canvas.Canvas) -> None:
     about_style.fontSize = 12
     about_style.leading = 12 * 1.2
 
-    about_text = (
-        f"This edition examines the Downloads folder of {
-            config.USER_NAME.capitalize()} "
-        f"as of {datetime.now().strftime('%m.%d.%Y')
-                 }. It reflects on the quiet buildup of digital "
-        f"clutter and unveils the untold stories hidden in our downloads. Files are randomly selected, "
-        f"with pixelated images ensuring privacy. As part of this ongoing project exploring the overlooked "
-        f"archives of our digital lives, your most recent download is {
-            recent_added_file[0]} "
-        f"(added on {recent_added_file[1].strftime(
-            '%m.%d.%Y')}), and the earliest download is "
-        f"{oldest_added_file[0]} (added on {
-            oldest_added_file[1].strftime('%m.%d.%Y')})."
-        f"\n"
-        f"Developed by Alvin Ashiatey, this Python package is a zine in itself—a space where design intersects with code, and each run brings new life to its content."
-    )
+    # Handle case where config.USER_NAME might be None
+    user_name = config.USER_NAME.capitalize() if config.USER_NAME else "Unknown User"
+
+    # Build about text conditionally based on whether file analysis is available
+    if recent_added_file is not None and oldest_added_file is not None:
+        about_text = (
+            f"This edition examines the Downloads folder of {user_name} "
+            f"as of {datetime.now().strftime('%m.%d.%Y')}. It reflects on the quiet buildup of digital "
+            f"clutter and unveils the untold stories hidden in our downloads. Files are randomly selected, "
+            f"with pixelated images ensuring privacy. As part of this ongoing project exploring the overlooked "
+            f"archives of our digital lives, your most recent download is {recent_added_file[0]} "
+            f"(added on {recent_added_file[1].strftime('%m.%d.%Y')}), and the earliest download is "
+            f"{oldest_added_file[0]} (added on {oldest_added_file[1].strftime('%m.%d.%Y')})."
+            f"\n"
+            f"Developed by Alvin Ashiatey, this Python package is a zine in itself—a space where design intersects with code, and each run brings new life to its content."
+        )
+    else:
+        about_text = (
+            f"This edition examines the Downloads folder of {user_name} "
+            f"as of {datetime.now().strftime('%m.%d.%Y')}. It reflects on the quiet buildup of digital "
+            f"clutter and unveils the untold stories hidden in our downloads. Files are randomly selected, "
+            f"with pixelated images ensuring privacy. As part of this ongoing project exploring the overlooked "
+            f"archives of our digital lives."
+            f"\n"
+            f"Developed by Alvin Ashiatey, this Python package is a zine in itself—a space where design intersects with code, and each run brings new life to its content."
+        )
+
     # Replace any newline with <br/> if needed
     about_text = about_text.replace('\n', '<br/>')
     about_page = Paragraph(about_text, about_style)
