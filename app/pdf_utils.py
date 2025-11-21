@@ -429,7 +429,7 @@ def draw_about_page(c: canvas.Canvas) -> None:
         f"into folders or quietly forgotten. As part of this ongoing project examining "
         f"the often-overlooked landscapes of our digital collections, this folder as of "
         f"{recent_added_file[1].strftime('%m.%d.%Y')} has {file_count} files, and included in  "
-        f" this publication are {config.NUMBER_OF_FILES} files."
+        f" this publication are {config.NUMBER_OF_FILES} files randomly selected."
         f"\n"
         f"Developed by Alvin Ashiatey, this project aims to capture snapshots of our Download folders, the directory where the internet meets the local machine. I originally created this tool to reflect on my own digital consumption habits over time, but I soon realized it could be interesting to share with others. Together, we might create a larger snapshot of internet culture as seen through our Download folders."
     )
