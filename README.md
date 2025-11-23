@@ -9,12 +9,21 @@ To contribute to future editions, simply download the provided script and run it
 Downloads Editions now includes a user-friendly graphical interface! No need to use the command line—just click buttons to generate your booklet.
 
 **Quick Start with GUI:**
+
+```bash
+# Run instantly without installing anything permanently
+curl -sL https://raw.githubusercontent.com/alvinashiatey/downloads_editions/main/quickstart.sh | bash
+```
+
+Or install permanently:
+
 ```bash
 pip install git+https://github.com/alvinashiatey/downloads_editions
 downloads-editions-gui
 ```
 
 For detailed GUI instructions and building standalone applications, see:
+
 - **[Quick Start Guide](QUICKSTART.md)** - Get started in under 5 minutes
 - **[GUI & Build Guide](README_GUI_BUILD.md)** - Comprehensive guide with standalone app building instructions
 
@@ -40,6 +49,7 @@ downloads-editions-gui
 ```
 
 Then simply:
+
 1. Browse to select your folder
 2. Choose how many files to include
 3. Click "Generate PDF"
@@ -113,5 +123,6 @@ MIT License - See LICENSE file for details
 ## Author
 
 **Alvin Ashiatey**
+
 - Email: mail@alvinashiatey.com
 - GitHub: https://github.com/alvinashiatey/downloads_editions
