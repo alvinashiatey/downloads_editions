@@ -2,10 +2,11 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List
 
+from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
-from reportlab.platypus import Paragraph
+from reportlab.platypus import Paragraph, Table, TableStyle
 
 from app import config, file_utils, image_utils
 
@@ -256,8 +257,8 @@ def build_pages(file_infos: List[FileInfo]) -> List[PageInfo]:
     # Cover page
     pages.append({'type': 'cover'})
 
-    # Empty page
-    pages.append({'type': 'empty'})
+    # File list page (replaces the first empty page)
+    pages.append({'type': 'file_list', 'file_infos': file_infos})
 
     # Content pages for each file info
     for idx, file_info in enumerate(file_infos):
@@ -444,6 +445,50 @@ def draw_about_page(c: canvas.Canvas) -> None:
                       config.HALF_HEIGHT - (about_page.height - (2 * config.MARGIN)))
 
 
+def draw_file_list_page(c: canvas.Canvas, file_infos: List[FileInfo]) -> None:
+    """
+    Draws a table listing all files included in the booklet.
+
+    Args:
+        c (Canvas): The ReportLab canvas to draw on.
+        file_infos (List[FileInfo]): List of file information dictionaries.
+    """
+    # Prepare table data
+    data = [['Name', 'Kind', 'Size', 'Date Added']]
+    for info in file_infos:
+        # Shorten the name if it's too long to fit in the column
+        short_name = shorten_text(info['title'], 25)
+        data.append([
+            short_name,
+            info['extension'],
+            f"{info['size']} B",
+            info['date']
+        ])
+
+    # Create table
+    # Adjusted column widths to accommodate the Name column
+    table = Table(data, colWidths=[
+                  config.HALF_WIDTH * 0.35, config.HALF_WIDTH * 0.15, config.HALF_WIDTH * 0.2, config.HALF_WIDTH * 0.2])
+
+    # Style the table
+    style = TableStyle([
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        # Transparent grid (white color effectively hides it on white paper)
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.white),
+    ])
+    table.setStyle(style)
+
+    # Draw table
+    w, h = table.wrap(config.HALF_WIDTH - 2 * config.MARGIN,
+                      config.HALF_HEIGHT - 2 * config.MARGIN)
+    table.drawOn(c, config.MARGIN, config.HALF_HEIGHT -
+                 h - config.MARGIN - 20)  # 20px padding from top
+
+
 def draw_content_page(c: canvas.Canvas, file_info: Dict[str, Any], page_num: int) -> None:
     """
     Draws a content page on the canvas using the provided file information.
@@ -482,6 +527,8 @@ def draw_half_page(c: canvas.Canvas, page_info: PageInfo) -> None:
 
     if page_type == 'cover':
         draw_cover_page(c)
+    elif page_type == 'file_list':
+        draw_file_list_page(c, page_info['file_infos'])
     elif page_type == 'about':
         draw_about_page(c)
     elif page_type == 'content':
